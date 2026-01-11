@@ -1,0 +1,67 @@
+﻿namespace CSharpLatest.Events;
+
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+/// <summary>
+/// Represents a dispatcher for asynchronous events with no arguments type.
+/// </summary>
+public class AsyncEventDispatcher
+{
+    private readonly WeakCollection<AsyncEventHandler> _handlers = new();
+
+    /// <summary>
+    /// Gets the number of register handlers.
+    /// May include handlers for disposed objects that have not been removed yet.
+    /// </summary>
+    public int HandlerCount => _handlers.Count;
+
+    /// <summary>
+    /// Registers an asynchronous event handler.
+    /// </summary>
+    /// <param name="handler">The event handler.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="handler"/> is <see langword="null"/>.</exception>
+    public void Register(AsyncEventHandler handler)
+    {
+        if (handler is null)
+            throw new ArgumentNullException(nameof(handler));
+
+        _handlers.TryAdd(handler);
+    }
+
+    /// <summary>
+    /// Unregisters an asynchronous event handler.
+    /// </summary>
+    /// <param name="handler">The event handler.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="handler"/> is <see langword="null"/>.</exception>
+    public void Unregister(AsyncEventHandler handler)
+    {
+        if (handler is null)
+            throw new ArgumentNullException(nameof(handler));
+
+        _handlers.TryRemove(handler);
+    }
+
+    /// <summary>
+    /// Inkokes all registered asynchronous event handlers.
+    /// </summary>
+    /// <param name="sender">The source of the event.</param>
+    /// <param name="cancellationToken">The cancellation token that will be checked prior to completing the returned task.</param>
+    public async Task InvokeAsync(object? sender, CancellationToken cancellationToken = default)
+    {
+        List<Task> tasks = [];
+        bool isCleanupNeeded = _handlers.ForEach((handler) =>
+        {
+            Task task = handler.Invoke(sender, cancellationToken);
+            tasks.Add(task);
+        });
+
+        if (isCleanupNeeded)
+            _handlers.Cleanup();
+
+        await Task.WhenAll(tasks).ConfigureAwait(false);
+    }
+}
+

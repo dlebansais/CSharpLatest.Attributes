@@ -1,0 +1,69 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <LangVersion>13</LangVersion>
+    <Nullable>enable</Nullable>
+    <Platforms>x64</Platforms>
+
+    <RootNamespace>CSharpLatest</RootNamespace>
+    <Version>2.6.0</Version>
+    <Authors>David Le Bansais</Authors>
+    <Company />
+    <Product />
+    <Description>A companion package for the dlebansais.CSharpLatest package.</Description>
+    <Copyright>Copyright © 2026 David Le Bansais</Copyright>
+    <AssemblyVersion>2.6.0.39</AssemblyVersion>
+    <FileVersion>2.6.0.39</FileVersion>
+    <RepositoryUrl>https://github.com/dlebansais/CSharpLatest.Attributes</RepositoryUrl>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+
+    <PackageLicenseExpression>0BSD</PackageLicenseExpression>
+    <PackageReadmeFile>README-short.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(APPVEYOR_PULL_REQUEST_NUMBER)' != ''">
+    <DefineConstants>$(DefineConstants);FRIEND_ASSEMBLY_NOT_SIGNED</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(APPVEYOR_PULL_REQUEST_NUMBER)' == ''">
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\signing.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PolySharp" Version="1.15.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(SolutionDir)'!='*Undefined*' And '$(TargetFramework)'=='netstandard2.0'">
+    <ItemGroup>
+      <None Remove="@(None)" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(Configuration)'=='Debug'">
+      <None Include="$(TargetDir)$(ProjectName).dll" />
+      <None Include="$(TargetDir)$(ProjectName).pdb" />
+      <None Include="$(TargetDir)$(ProjectName).xml" />
+    </ItemGroup>
+    <Copy SourceFiles="@(None)" DestinationFolder="$(SolutionDir)nuget-debug\lib\netstandard2.0\" Condition="'$(Configuration)'=='Debug'" />
+
+    <ItemGroup Condition="'$(Configuration)'=='Release'">
+      <None Include="$(TargetDir)$(ProjectName).dll" />
+      <None Include="$(TargetDir)$(ProjectName).xml" />
+    </ItemGroup>
+    <Copy SourceFiles="@(None)" DestinationFolder="$(SolutionDir)nuget\lib\netstandard2.0\" Condition="'$(Configuration)'=='Release'" />
+  </Target>
+
+</Project>
