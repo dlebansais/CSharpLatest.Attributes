@@ -58,12 +58,14 @@
       <None Include="$(TargetDir)$(ProjectName).xml" />
     </ItemGroup>
     <Copy SourceFiles="@(None)" DestinationFolder="$(SolutionDir)nuget-debug\lib\netstandard2.0\" Condition="'$(Configuration)'=='Debug'" />
+    <Copy SourceFiles="README-short.md" DestinationFolder="$(SolutionDir)nuget-debug\" Condition="'$(Configuration)'=='Debug'" />
 
     <ItemGroup Condition="'$(Configuration)'=='Release'">
       <None Include="$(TargetDir)$(ProjectName).dll" />
       <None Include="$(TargetDir)$(ProjectName).xml" />
     </ItemGroup>
     <Copy SourceFiles="@(None)" DestinationFolder="$(SolutionDir)nuget\lib\netstandard2.0\" Condition="'$(Configuration)'=='Release'" />
+    <Copy SourceFiles="README-short.md" DestinationFolder="$(SolutionDir)nuget\" Condition="'$(Configuration)'=='Release'" />
   </Target>
 
 </Project>
