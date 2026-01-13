@@ -7,14 +7,14 @@
     <Platforms>x64</Platforms>
 
     <RootNamespace>CSharpLatest</RootNamespace>
-    <Version>2.6.2</Version>
+    <Version>2.6.4</Version>
     <Authors>David Le Bansais</Authors>
     <Company />
     <Product />
     <Description>A companion package for the dlebansais.CSharpLatest package.</Description>
     <Copyright>Copyright © 2026 David Le Bansais</Copyright>
-    <AssemblyVersion>2.6.2.39</AssemblyVersion>
-    <FileVersion>2.6.2.39</FileVersion>
+    <AssemblyVersion>2.6.4.43</AssemblyVersion>
+    <FileVersion>2.6.4.43</FileVersion>
     <RepositoryUrl>https://github.com/dlebansais/CSharpLatest.Attributes</RepositoryUrl>
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 

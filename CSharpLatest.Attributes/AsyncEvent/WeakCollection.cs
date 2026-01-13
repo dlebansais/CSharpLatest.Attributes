@@ -2,16 +2,33 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 /// <summary>
-/// Represents a collection of items, implemented to store them as weak references.
+/// Represents a collection of delegates, implemented to store them as weak references.
 /// All methods are thread-safe.
 /// </summary>
 /// <typeparam name="TItem"></typeparam>
 internal sealed class WeakCollection<TItem>
-    where TItem : class
+    where TItem : Delegate
 {
+    /// <summary>
+    /// The list of delegates. This is enough to run the algorithm, but not to keep them in memory.
+    /// </summary>
     private readonly List<WeakReference<TItem>> weakReferences = [];
+
+    /// <summary>
+    /// A store that keeps references to delegate targets.
+    /// This makes sure that when the target disappears from memory, delegates can go away, but not before.
+    /// </summary>
+    private readonly ConditionalWeakTable<object, List<TItem>> _store = new();
+
+    /// <summary>
+    /// A target for delegates without target (handler.Target is null for static handlers).
+    /// This key never goes away, but static event handlers stay when instances are disposed anyway.
+    /// </summary>
+    private readonly object _allStatic = new();
 
     /// <inheritdoc cref="List{TItem}.Count" />
     public int Count => weakReferences.Count;
@@ -32,6 +49,10 @@ internal sealed class WeakCollection<TItem>
                         return;
 
             weakReferences.Add(weakReference);
+
+            object handlerTarget = handler.Target ?? _allStatic;
+            List<TItem> targetHandlers = _store.GetOrCreateValue(handlerTarget);
+            targetHandlers.Add(handler);
         }
     }
 
@@ -48,6 +69,13 @@ internal sealed class WeakCollection<TItem>
                     if (target.Equals(handler))
                     {
                         weakReferences.RemoveAt(i);
+
+                        object handlerTarget = handler.Target ?? _allStatic;
+                        bool isFound = _store.TryGetValue(handlerTarget, out List<TItem> targetHandlers);
+                        Debug.Assert(isFound, "Since the target exists, the corresponding key also exists");
+                        bool isRemoved = targetHandlers.Remove(handler);
+                        Debug.Assert(isRemoved, "Since the hander was found in weakReferences (and removed), it has to exist in this list of handlers as well");
+
                         return;
                     }
         }
@@ -95,6 +123,8 @@ internal sealed class WeakCollection<TItem>
                     toRemove.Add(item);
             }
 
+            // Handlers for targets that gone are explicitely removed from the list here.
+            // They have also been implicitely removed from the store.
             foreach (WeakReference<TItem> item in toRemove)
                 _ = weakReferences.Remove(item);
         }
